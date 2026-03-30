@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - CodeMentor AI</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="docs.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar (copied from index.html) -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html"><span class="logo-text">CodeMentor AI</span></a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html#features">Features</a></li>
+                <li><a href="docs.html">Docs</a></li>
+                <li><a href="review.html">Code Review</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Docs Hero -->
+    <section class="docs-hero">
+        <div class="container">
+            <h1>Documentation</h1>
+            <p>Everything you need to get started with CodeMentor AI, from quick setup to advanced usage and API integration.</p>
+        </div>
+    </section>
+
+    <!-- Docs Main Content -->
+    <div class="container docs-container">
+        <nav class="docs-sidebar">
+            <div class="docs-nav">
+                <h3>On this page</h3>
+                <ul>
+                    <li><a href="#overview">Overview</a></li>
+                    <li><a href="#quick-start">Quick Start</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#code-review">Code Review Guide</a></li>
+                    <li><a href="#api">API Reference</a></li>
+                    <li><a href="#faq">FAQ</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <main class="docs-main">
+            <!-- Overview -->
+            <section id="overview" class="docs-section">
+                <h2>Overview</h2>
+                <p>CodeMentor AI is your AI-powered coding assistant that provides instant code reviews, bug detection, performance analysis, and refactoring suggestions. Like having a senior developer review your code in seconds.</p>
+                
+                <div class="docs-features">
+                    <div class="docs-feature-card">
+                        <h4>⚡ Instant Feedback</h4>
+                        <p>Get detailed reviews with actionable suggestions within seconds.</p>
+                    </div>
+                    <div class="docs-feature-card">
+                        <h4>⭐ Quality Scores</h4>
+                        <p>Comprehensive scoring across readability, performance, and best practices.</p>
+                    </div>
+                    <div class="docs-feature-card">
+                        <h4>🛠️ Multi-Language</h4>
+                        <p>Supports JavaScript, Python, Java, TypeScript, C++, Go, and 20+ languages.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Start -->
+            <section id="quick-start" class="docs-section">
+                <h2>Quick Start</h2>
+                
+                <h3>1. Visit Code Review</h3>
+                <p>Navigate to <a href="review.html">Code Review page</a> and paste your code.</p>
+                
+                <h3>2. Select Language</h3>
+                <p>Choose your programming language from the dropdown.</p>
+                
+                <h3>3. Get Review</h3>
+                <p>Click "Get AI Review" and receive instant feedback.</p>
+
+                <div class="docs-steps">
+                    <div class="docs-step">
+                        <div class="docs-step-number">1</div>
+                        <h4>Paste Code</h4>
+                        <p>Enter your code in the editor</p>
+                    </div>
+                    <div class="docs-step">
+                        <div class="docs-step-number">2</div>
+                        <h4>Select Language</h4>
+                        <p>Choose from 20+ languages</p>
+                    </div>
+                    <div class="docs-step">
+                        <div class="docs-step-number">3</div>
+                        <h4>Review Results</h4>
+                        <p>Get instant AI feedback</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features -->
+            <section id="features" class="docs-section">
+                <h2>Features</h2>
+                
+                <div class="docs-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>Description</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>AI Code Review</td>
+                                <td>Bug detection, logic improvements</td>
+                                <td><span class="docs-badge badge-supported">✅ Live</span></td>
+                            </tr>
+                            <tr>
+                                <td>Quality Score</td>
+                                <td>0-100 score with breakdown</td>
+                                <td><span class="docs-badge badge-supported">✅ Live</span></td>
+                            </tr>
+                            <tr>
+                                <td>Performance Analysis</td>
+                                <td>Time/space complexity</td>
+                                <td><span class="docs-badge badge-preview">🔥 Preview</span></td>
+                            </tr>
+                            <tr>
+                                <td>GitHub Integration</td>
+                                <td>PR auto-reviews</td>
+                                <td><span class="docs-badge badge-api">🚀 API</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Code Review Guide -->
+            <section id="code-review" class="docs-section">
+                <h2>Code Review Guide</h2>
+                
+                <h3>Example Review</h3>
+                <div class="docs-code">
+                    <pre><code class="language-javascript">// Original code
+function findDuplicates(arr) {
+  const result = [];
+  for (let i = 0; i < arr.length; i++) {
+    for (let j = i + 1; j < arr.length; j++) {
+      if (arr[i] === arr[j]) {
+        result.push(arr[i]);
+      }
+    }
+  }
+  return result;
+}</code></pre>
+                </div>
+
+                <p><strong>AI Feedback:</strong> O(n²) complexity detected. Here's an optimized O(n) solution using hashmap:</p>
+
+                <div class="docs-code">
+                    <pre><code class="language-javascript">// Optimized version ✅ Score: 95/100
+function findDuplicates(arr) {
+  const hash = {};
+  const duplicates = [];
+  
+  for (const num of arr) {
+    if (hash[num]) {
+      duplicates.push(num);
+    } else {
+      hash[num] = true;
+    }
+  }
+  return [...new Set(duplicates)];
+}</code></pre>
+                </div>
+            </section>
+
+            <!-- API Reference -->
+            <section id="api" class="docs-section">
+                <h2>API Reference</h2>
+                <p>Integrate CodeMentor AI into your apps. <a href="#contact">Contact us</a> for API keys.</p>
+                
+                <h3>Review Endpoint</h3>
+                <div class="docs-code">
+                    <pre><code class="language-bash">POST /api/review
+Content-Type: application/json
+
+{
+  "code": "your code here",
+  "language": "javascript"
+}</code></pre>
+                </div>
+
+                <h3>Response</h3>
+                <div class="docs-code">
+                    <pre><code class="language-json">{
+  "score": 92,
+  "feedback": "Detailed review...",
+  "suggestions": [...],
+  "improvedCode": "..."
+}</code></pre>
+                </div>
+            </section>
+
+            <!-- FAQ -->
+            <section id="faq" class="docs-section">
+                <h2>FAQ</h2>
+                
+                <h3>How accurate is the AI review?</h3>
+                <p>Powered by GPT-4, our reviews match senior developer quality 92% of the time (internal benchmarks).</p>
+                
+                <h3>What languages are supported?</h3>
+                <p>JavaScript, Python, Java, TypeScript, C++, Go, Rust, and all major languages.</p>
+                
+                <h3>Is my code private?</h3>
+                <p>Yes! All code is processed securely and deleted immediately after analysis.</p>
+            </section>
+        </main>
+    </div>
+
+    <!-- Footer (copied from index.html) -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <span class="logo-text">CodeMentor AI</span>
+                    <p>AI-powered mentorship for every developer.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="link-group">
+                        <h4>Product</h4>
+                        <a href="index.html#features">Features</a>
+                        <a href="docs.html">Docs</a>
+                    </div>
+                </div>
+                <div class="footer-social">
+                    <a href="#">GitHub</a>
+                    <a href="#">Twitter</a>
+                    <a href="#">Discord</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 CodeMentor AI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Simple smooth scrolling for docs
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Active nav highlighting
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('.docs-section');
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            document.querySelectorAll('.docs-nav a').forEach(a => {
+                a.classList.remove('active');
+                if (a.getAttribute('href') === `#${current}`) {
+                    a.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
