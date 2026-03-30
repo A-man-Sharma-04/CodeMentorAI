@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeMentor AI - AI-Powered Code Mentorship</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-text">CodeMentor AI</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#docs">Docs</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="hero" class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1 class="hero-title">Get AI Mentorship for Your Code — Instantly</h1>
+                <p class="hero-subtitle">Upload code or connect your repo and get feedback like a senior developer in seconds.</p>
+                <div class="hero-ctas">
+                    <a href="#get-started" class="cta-primary">Get Started</a>
+                    <a href="#github" class="cta-secondary">Connect GitHub</a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="code-editor-mock">
+                    <div class="editor-header">
+                        <span>main.js</span>
+                        <div class="editor-buttons">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                    <div class="editor-body">
+                        <pre><code class="line"><span class="comment">// AI Suggestion: Use hashmap for O(1) lookup</span><br>function findDuplicates(arr) {<br>    const hash = {};<br>    return arr.filter(num => {<br>        if (hash[num]) return true;<br>        hash[num] = true;<br>        return false;<br>    });<br>}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2 class="section-title">Powerful Features for Developers</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>AI Code Review</h3>
+                    <p>Detect bugs, improve logic, and get actionable suggestions instantly.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⭐</div>
+                    <h3>Code Quality Score</h3>
+                    <p>Get an instant rating with detailed insights to level up your code.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Real-Time Feedback</h3>
+                    <p>Instant suggestions as you code — like pair programming with AI.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📤</div>
+                    <h3>GitHub Integration</h3>
+                    <p>Auto-review PRs and get feedback before merging.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3>Multi-Language Support</h3>
+                    <p>JavaScript, Python, Java, TypeScript, and 20+ languages supported.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3>Performance Analysis</h3>
+                    <p>Time & space complexity analysis with optimization recommendations.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works">
+        <div class="container">
+            <h2 class="section-title">How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Upload or Connect</h3>
+                    <p>Upload code files or connect your GitHub repo.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>AI Analyzes</h3>
+                    <p>Our AI scans your code for issues and opportunities.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Get Feedback</h3>
+                    <p>Receive detailed suggestions and improvements.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Deploy Better</h3>
+                    <p>Apply changes and ship cleaner, faster code.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Demo -->
+    <section class="live-demo">
+        <div class="container">
+            <h2 class="section-title">See It in Action</h2>
+            <div class="demo-container">
+                <div class="demo-code">
+                    <pre><code>function twoSum(nums, target) {
+  const map = new Map();
+  for (let i = 0; i < nums.length; i++) {
+    const complement = target - nums[i];
+    if (map.has(complement)) {
+      return [map.get(complement), i];
+    }
+    map.set(nums[i], i);
+  }
+}</code></pre>
+                </div>
+                <div class="demo-feedback">
+                    <div class="feedback-item">
+                        <span class="badge good">✅ Optimized</span>
+                        <p>Excellent use of hashmap for O(n) solution.</p>
+                    </div>
+                    <div class="feedback-item">
+                        <span class="badge suggest">💡 Suggestion</span>
+                        <p>Consider early return for edge cases.</p>
+                    </div>
+                    <div class="feedback-item">
+                        <span class="badge score">Score: 95/100</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Target Users -->
+    <section class="target-users">
+        <div class="container">
+            <h2 class="section-title">Built for Developers Like You</h2>
+            <div class="users-grid">
+                <div class="user-card">
+                    <div class="user-icon">🎓</div>
+                    <h3>Students</h3>
+                    <p>Practice and improve coding interview skills.</p>
+                </div>
+                <div class="user-card">
+                    <div class="user-icon">💻</div>
+                    <h3>Developers</h3>
+                    <p>Level up your daily coding with instant feedback.</p>
+                </div>
+                <div class="user-card">
+                    <div class="user-icon">🚀</div>
+                    <h3>Startups</h3>
+                    <p>Ship faster with AI-powered code reviews.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials">
+        <div class="container">
+            <h2 class="section-title">What Developers Are Saying</h2>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <p>"CodeMentor AI caught bugs I missed and suggested optimizations that saved me hours."</p>
+                    <div class="author">
+                        <span class="author-name">Sarah K., Fullstack Dev</span>
+                        <span class="company">@TechStartup</span>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <p>"The GitHub integration is game-changing. PR reviews are now instant."</p>
+                    <div class="author">
+                        <span class="author-name">Mike R., CTO</span>
+                        <span class="company">@ScaleUp</span>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <p>"Perfect for students. Helped me ace my coding interviews."</p>
+                    <div class="author">
+                        <span class="author-name">Alex L., CS Student</span>
+                        <span class="company">@University</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing section removed per feedback -->
+
+    <!-- Final CTA -->
+    <section class="final-cta">
+        <div class="container">
+            <h2>Start Building Better Code Today</h2>
+            <p>Join 10,000+ developers improving their code with AI.</p>
+            <div class="cta-group">
+                <a href="#" class="cta-primary large">Get Started Free</a>
+                <a href="#" class="cta-secondary large">Connect GitHub</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <span class="logo-text">CodeMentor AI</span>
+                    <p>AI-powered mentorship for every developer.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="link-group">
+                        <h4>Product</h4>
+                        <a href="#">Features</a>
+                        <a href="#">Docs</a>
+                    </div>
+                    <div class="link-group">
+                        <h4>Company</h4>
+                        <a href="#">About</a>
+                        <a href="#">Careers</a>
+                        <a href="#">Blog</a>
+                    </div>
+                    <div class="link-group">
+                        <h4>Support</h4>
+                        <a href="#">Help Center</a>
+                        <a href="#">Status</a>
+                        <a href="#">Contact</a>
+                    </div>
+                </div>
+                <div class="footer-social">
+                    <a href="#">GitHub</a>
+                    <a href="#">Twitter</a>
+                    <a href="#">Discord</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 CodeMentor AI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
