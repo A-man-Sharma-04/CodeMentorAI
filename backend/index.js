@@ -22,15 +22,15 @@ app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
-    openaiKeySet: !!process.env.OPENAI_API_KEY 
+    groqKeySet: !!process.env.GROQ_API_KEY 
   });
 });
 
 app.listen(5500, () => {
   console.log("Server running on http://localhost:5500");
-  if (!process.env.OPENAI_API_KEY) {
-    console.warn("WARNING: OPENAI_API_KEY not set in .env! API calls will fail.");
+  if (!process.env.GROQ_API_KEY) {
+    console.warn("WARNING: GROQ_API_KEY not set in .env! API calls will fail.");
   } else {
-    console.log("OpenAI API key configured.");
+    console.log("Groq API key configured.");
   }
 });

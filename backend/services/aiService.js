@@ -2,13 +2,15 @@ require("dotenv").config();
 const OpenAI = require("openai");
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.GROQ_API_KEY,
+  baseURL: "https://api.groq.com/openai/v1"
 });
 
 async function safeJsonParse(content, fallback = { reply: "AI service error", fix: "", improved_code: "" }) {
   try {
     return JSON.parse(content);
   } catch {
+    console.error("JSON parse failed, raw AI output:", content);
     return fallback;
   }
 }
@@ -38,16 +40,24 @@ Code:
 ${code || "No code provided"}
 \`\`\``;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt }
-    ],
-  });
+  try {
+    const response = await openai.chat.completions.create({
+      model: "mixtral-8x7b-32768",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ],
+    });
 
-  const content = response.choices[0].message.content;
-  return safeJsonParse(content);
+    const content = response.choices[0].message.content;
+    return safeJsonParse(content);
+  } catch (error) {
+    console.error("Groq API error:", { message: error.message, status: error.status, response: error.response?.data || error.response });
+    if (error.status === 401) {
+      throw new Error("401 Incorrect API key. Check GROQ_API_KEY (should start with gsk_) in .env");
+    }
+    throw new Error(`AI service failed: ${error.message}`);
+  }
 }
 
 async function explainCode(code, language) {
@@ -74,16 +84,24 @@ Language: ${language || "unknown"}
 ${code}
 \`\`\``;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt }
-    ],
-  });
+  try {
+    const response = await openai.chat.completions.create({
+      model: "mixtral-8x7b-32768",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ],
+    });
 
-  const content = response.choices[0].message.content;
-  return safeJsonParse(content, { explanation: "Explanation unavailable", key_concepts: [], improvements: "" });
+    const content = response.choices[0].message.content;
+    return safeJsonParse(content, { explanation: "Explanation unavailable", key_concepts: [], improvements: "" });
+  } catch (error) {
+    console.error("Groq API error:", { message: error.message, status: error.status, response: error.response?.data || error.response });
+    if (error.status === 401) {
+      throw new Error("401 Incorrect API key. Check GROQ_API_KEY (should start with gsk_) in .env");
+    }
+    throw new Error(`AI service failed: ${error.message}`);
+  }
 }
 
 async function analyseCode(code, language, issue) {
@@ -112,16 +130,24 @@ Language: ${language || "unknown"}
 ${code}
 \`\`\``;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt }
-    ],
-  });
+  try {
+    const response = await openai.chat.completions.create({
+      model: "mixtral-8x7b-32768",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ],
+    });
 
-  const content = response.choices[0].message.content;
-  return safeJsonParse(content, { analysis: "Analysis unavailable", fixes: "", fixed_code: code });
+    const content = response.choices[0].message.content;
+    return safeJsonParse(content, { analysis: "Analysis unavailable", fixes: "", fixed_code: code });
+  } catch (error) {
+    console.error("Groq API error:", { message: error.message, status: error.status, response: error.response?.data || error.response });
+    if (error.status === 401) {
+      throw new Error("401 Incorrect API key. Check GROQ_API_KEY (should start with gsk_) in .env");
+    }
+    throw new Error(`AI service failed: ${error.message}`);
+  }
 }
 
 async function reviewCode(code, language) {
@@ -163,16 +189,25 @@ Language: ${language || "unknown"}
 ${code}
 \`\`\``;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt }
-    ],
-  });
+  try {
+    const response = await openai.chat.completions.create({
+      model: "mixtral-8x7b-32768",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ],
+    });
 
-  const content = response.choices[0].message.content;
-  return safeJsonParse(content, { score: 0, summary: "Review unavailable", issues: [], improvements: [], reviewed_code: code, refactored_code: code });
+    const content = response.choices[0].message.content;
+    return safeJsonParse(content, { score: 0, summary: "Review unavailable", issues: [], improvements: [], reviewed_code: code, refactored_code: code });
+  } catch (error) {
+    console.error("Groq API error:", { message: error.message, status: error.status, response: error.response?.data || error.response });
+    if (error.status === 401) {
+      throw new Error("401 Incorrect API key. Check GROQ_API_KEY (should start with gsk_) in .env");
+    }
+    throw new Error(`AI service failed: ${error.message}`);
+  }
 }
 
 module.exports = { chatWithAI, explainCode, analyseCode, reviewCode };
+
