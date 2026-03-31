@@ -6,14 +6,123 @@ const openai = new OpenAI({
   baseURL: "https://api.groq.com/openai/v1"
 });
 
-async function safeJsonParse(content, fallback = { reply: "AI service error", fix: "", improved_code: "" }) {
-  try {
-    return JSON.parse(content);
-  } catch {
-    console.error("JSON parse failed, raw AI output:", content);
-    return fallback;
+async function safeJsonParse(content, fallback) {
+  function extractJsonCandidates(text) {
+    const candidates = [];
+
+    // ```json ... ```
+    let m = text.match(/```json\s*\n([\s\S]*?)\n\s*```/i);
+    if (m && m[1]) candidates.push(m[1].trim());
+
+    // ``` ... ```
+    m = text.match(/```\s*\n([\s\S]*?)\n\s*```/i);
+    if (m && m[1]) candidates.push(m[1].trim());
+
+    // Full content if JSON-like - try this first as it's most likely
+    const trimmed = text.trim();
+    if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+      candidates.push(trimmed);
+    }
+
+    // Raw JSON blocks - improved to handle nested structures
+    let braceCount = 0;
+    let start = -1;
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] === '{') {
+        if (braceCount === 0) start = i;
+        braceCount++;
+      } else if (text[i] === '}') {
+        braceCount--;
+        if (braceCount === 0 && start !== -1) {
+          const block = text.substring(start, i + 1);
+          if (block.length > 20) candidates.push(block.trim());
+          start = -1;
+        }
+      }
+    }
+
+    // Dedupe, sort largest first, top 5
+    const unique = [...new Set(candidates)].sort((a, b) => b.length - a.length).slice(0, 5);
+    return unique;
   }
+
+  function cleanControlCharacters(jsonString) {
+    // Ultra-aggressive cleaning: Replace ALL literal newlines, carriage returns, and tabs
+    // that appear in the JSON with a space character
+    // This happens BEFORE we try to parse, so we don't break the JSON structure
+    
+    // Strategy: Process the string to escape or remove problem characters
+    let result = '';
+    
+    for (let i = 0; i < jsonString.length; i++) {
+      const char = jsonString[i];
+      const code = char.charCodeAt(0);
+      
+      // Allow: normal printable ASCII (32-126) and DEL (127) and high Unicode
+      // Replace: control characters (0-31) and DEL (127) with space
+      if (code < 32 || code === 127) {
+        // These are control characters - replace with space
+        result += ' ';
+      } else {
+        // Keep everything else as-is
+        result += char;
+      }
+    }
+    
+    return result;
+  }
+
+  const candidates = extractJsonCandidates(content);
+  console.log(`🔍 JSON candidates: ${candidates.length} (content: ${content.length} chars)`);
+
+  for (let i = 0; i < candidates.length; i++) {
+    const candidate = candidates[i];
+    try {
+      // Step 1: Remove comments
+      let cleaned = candidate
+        .replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '')
+        .trim();
+
+      // Step 2: Remove trailing commas
+      cleaned = cleaned.replace(/,\s*([}\]])/g, '$1');
+
+      // Step 3: Clean unescaped control characters
+      cleaned = cleanControlCharacters(cleaned);
+
+      // Step 4: Final normalization - remove any remaining problematic whitespace
+      cleaned = cleaned
+        .replace(/[\n\r]+/g, ' ')  // Replace newlines with spaces
+        .replace(/\t+/g, ' ')      // Replace tabs with spaces
+        .replace(/  +/g, ' ')      // Collapse multiple spaces
+        .trim();
+
+      // Step 5: Parse
+      const parsed = JSON.parse(cleaned);
+
+      // Validate that it's an object
+      if (typeof parsed !== 'object' || parsed === null) {
+        console.log(`⏭️ Attempt ${i + 1} failed: not an object`);
+        continue;
+      }
+
+      // Check if it has at least some of the expected keys
+      const expectedKeys = Object.keys(fallback);
+      const hasExpectedKey = expectedKeys.some(key => key in parsed);
+      
+      if (hasExpectedKey || expectedKeys.length === 0) {
+        console.log(`✅ Parsed successfully on attempt ${i + 1}`);
+        return { ...fallback, ...parsed };
+      }
+    } catch (e) {
+      console.log(`⏭️ Attempt ${i + 1} failed: ${e.message.substring(0, 60)}`);
+    }
+  }
+
+  console.error(`❌ All parse attempts (${candidates.length}) failed. Using fallback. Raw sample:`, content.substring(0, 200) + '...');
+  return fallback;
 }
+
+// ... (all other functions unchanged, with safeJsonParse(content, fallback) calls - chatWithAI, explainCode, analyseCode, reviewCode as before)
 
 async function chatWithAI(message, code, language) {
   const systemPrompt = `You are a senior software engineer and mentor.
@@ -24,7 +133,7 @@ Help the user by:
 - Suggesting improvements
 - Giving optimized solutions
 
-Always respond in JSON:
+IMPORTANT: Return ONLY valid JSON (no markdown, no code blocks, no extra text):
 {
   "reply": "your response",
   "fix": "suggested fix explanation",
@@ -50,7 +159,7 @@ ${code || "No code provided"}
     });
 
     const content = response.choices[0].message.content;
-    return safeJsonParse(content);
+    return safeJsonParse(content, { reply: "AI service error", fix: "", improved_code: "" });
   } catch (error) {
     console.error("Groq API error:", JSON.stringify({ 
       message: error.message, 
@@ -74,7 +183,7 @@ Explain the provided code step by step:
 - Data flow
 - Potential issues/improvements
 
-Respond in JSON:
+IMPORTANT: Return ONLY valid JSON (no markdown, no code blocks, no extra text):
 {
   "explanation": "detailed step-by-step explanation",
   "key_concepts": ["list", "of", "concepts"],
@@ -125,7 +234,7 @@ Analyze the code for:
 
 Provide fixes.
 
-Respond in JSON:
+IMPORTANT: Return ONLY valid JSON (no markdown, no code blocks, no extra text):
 {
   "analysis": "detailed issues found",
   "fixes": "step-by-step fixes",
@@ -178,7 +287,7 @@ Perform a comprehensive code review including:
 
 Language: ${language || 'unknown'}
 
-Respond ONLY in valid JSON format:
+IMPORTANT: Return ONLY valid JSON (no markdown, no code blocks, no extra text):
 {
   "score": 95,
   "summary": "Overall review summary",
@@ -230,4 +339,3 @@ ${code}
 }
 
 module.exports = { chatWithAI, explainCode, analyseCode, reviewCode };
-
