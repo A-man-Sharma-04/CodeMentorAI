@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
     try {
       const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
         ? 'http://localhost:5000' 
-        : window.location.origin;
+        : 'https://codementorai-vqp8.onrender.com';
       const response = await fetch(`${apiUrl}/api/review`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

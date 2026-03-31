@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const bodyData = currentTab === 'chat' ? { message: code, code, language } : { code, language };
       const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
         ? 'http://localhost:5000' 
-        : window.location.origin;
+        : 'https://codementorai-vqp8.onrender.com';
       const response = await fetch(`${apiUrl}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

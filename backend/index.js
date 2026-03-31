@@ -11,7 +11,14 @@ const app = express();
 
 const corsOptions = {
   origin: function (origin, callback) {
-    const allowedOrigins = ['http://localhost:5000', 'http://localhost:5500', 'http://127.0.0.1:5000', 'http://127.0.0.1:5500', 'https://codementorai-n3b6.onrender.com'];
+    const allowedOrigins = [
+      'http://localhost:5000',
+      'http://localhost:5500',
+      'http://127.0.0.1:5000',
+      'http://127.0.0.1:5500',
+      'https://codementorai-n3b6.onrender.com',
+      'https://ai-codementor.app' // Update with your actual Netlify domain
+    ];
     
     // Allow requests with no origin (like mobile apps, file://, or curl requests)
     if (!origin || allowedOrigins.includes(origin)) {
@@ -30,6 +37,39 @@ app.use("/api/chat", chatRoute);
 app.use("/api/analyse", analyseRoute);
 app.use("/api/explain", explainRoute);
 app.use("/api/review", reviewRoute);
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Backend is running',
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: '/health',
+      data: '/api/data',
+      chat: '/api/chat',
+      analyse: '/api/analyse',
+      explain: '/api/explain',
+      review: '/api/review'
+    }
+  });
+});
+
+// Example API route for testing
+app.get('/api/data', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Example API endpoint',
+    data: {
+      timestamp: new Date().toISOString(),
+      sampleData: [
+        { id: 1, name: 'Sample Item 1' },
+        { id: 2, name: 'Sample Item 2' },
+        { id: 3, name: 'Sample Item 3' }
+      ]
+    }
+  });
+});
 
 // Health check endpoint
 app.get('/health', (req, res) => {
