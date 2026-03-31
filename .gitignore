@@ -4,5 +4,6 @@ node_modules/
 *.log
 .package-lock.json
 *.env
-.FRONTEND_ACESS_GUIDE.md
-.SETUP_GUIDE.md
+*.FRONTEND_ACESS_GUIDE.md
+*.SETUP_GUIDE.md
+md

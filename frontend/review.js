@@ -18,8 +18,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
   codeEditor.addEventListener('input', function () {
+    const maxHeight = 460;
     this.style.height = 'auto';
-    this.style.height = this.scrollHeight + 'px';
+    this.style.height = Math.min(this.scrollHeight, maxHeight) + 'px';
+    this.style.overflowY = this.scrollHeight > maxHeight ? 'auto' : 'hidden';
   });
 
   // ==============================
@@ -81,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
         resultContent.innerHTML = `
           <div class="error">
             <h4>⚠️ Error</h4>
-            <p>${errorMsg}</p>
+            <p>${escapeHtml(errorMsg)}</p>
             <p>👉 Make sure backend is running and accessible</p>
           </div>
         `;
@@ -173,6 +175,7 @@ const refactoredHtml = data.optimized_code || data.refactored_code
       results?.classList.add('hidden');
       codeEditor.value = '';
       codeEditor.style.height = 'auto';
+      codeEditor.style.overflowY = 'auto';
       codeEditor.focus();
     });
   }
@@ -181,6 +184,7 @@ const refactoredHtml = data.optimized_code || data.refactored_code
     clearBtn.addEventListener('click', () => {
       codeEditor.value = '';
       codeEditor.style.height = 'auto';
+      codeEditor.style.overflowY = 'auto';
       codeEditor.focus();
     });
   }

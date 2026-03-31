@@ -776,6 +776,7 @@ body {
     font-weight: 700;
     background: linear-gradient(135deg, #3b82f6, #8b5cf6);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 1rem;
 }
@@ -831,6 +832,7 @@ body {
 #code-editor {
     width: 100%;
     min-height: 300px;
+    max-height: 460px;
     background: #1e1e1e;
     border: 1px solid #334155;
     border-radius: 12px;
@@ -840,6 +842,7 @@ body {
     line-height: 1.6;
     color: #e2e8f0;
     resize: vertical;
+    overflow: auto;
     transition: border-color 0.3s ease;
 }
 
@@ -921,6 +924,15 @@ body {
     font-size: 1.3rem;
 }
 
+.result-content {
+    flex: 1;
+    min-height: 0;
+    max-height: 560px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 0.25rem;
+}
+
 .review-summary {
     background: rgba(16, 185, 129, 0.2);
     padding: 1.5rem;
@@ -959,12 +971,16 @@ body {
     font-size: 0.9em;
     display: block;
     margin-top: 0.5rem;
+    overflow-x: auto;
+    white-space: pre;
 }
 
 .refactored-code pre {
     background: #1e1e1e;
     padding: 1.5rem;
     border-radius: 12px;
+    max-height: 460px;
+    overflow-y: auto;
     overflow-x: auto;
     margin-top: 1rem;
 }
