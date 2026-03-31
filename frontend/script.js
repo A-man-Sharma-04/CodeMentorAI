@@ -119,45 +119,45 @@ document.addEventListener('DOMContentLoaded', function() {
     
     switch (tab) {
       case 'review':
-        if (scoreBadge && typeof data?.score === 'number') {
-          scoreBadge.innerHTML = `<span class="badge score">Score: ${data.score}/100</span>`;
+        if (scoreBadge) {
+          scoreBadge.innerHTML = `<span class="badge score">Score: ${data?.score || 0}/100</span>`;
         }
         html = `
-          <div class="review-summary">${escapeHtml(data?.summary || 'No summary')}</div>
+          <div class="review-summary">${escapeHtml(data.summary || 'No summary')}</div>
           <div class="review-issues">
-            <h4>Issues Found (${Array.isArray(data?.issues) ? data.issues.length : 0}):</h4>
-            ${Array.isArray(data?.issues) && data.issues.length > 0 ? data.issues.map(issue => `
-              <div class="issue-item ${issue?.severity || 'info'}">
-                <strong>${(issue?.type || 'Issue').toUpperCase()} (${(issue?.severity || 'info').toUpperCase()})</strong>${typeof issue?.line === 'number' ? ` - Line ${issue.line}` : ''}
-                <p>${escapeHtml(issue?.description || '')}</p>
-                ${issue?.fix ? `<code>${escapeHtml(issue.fix)}</code>` : ''}
+            <h4>Issues Found (${data.issues?.length || 0}):</h4>
+            ${data.issues?.map(issue => `
+              <div class="issue-item ${issue.severity}">
+                <strong>${(issue.type || 'Issue').toUpperCase()} (${(issue.severity || 'info').toUpperCase()})</strong> - Line ${issue.line || '?'}
+                <p>${escapeHtml(issue.description || '')}</p>
+                ${issue.fix ? `<code>${escapeHtml(issue.fix)}</code>` : ''}
               </div>
-            `).join('') : '<p>No issues found! 🎉</p>'}
+            `).join('') || '<p>No issues found! 🎉</p>'}
           </div>
-          ${data?.refactored_code ? `<div class="refactored-code"><h4>Refactored Code:</h4><pre><code>${escapeHtml(data.refactored_code)}</code></pre></div>` : ''}
+          ${data.refactored_code ? `<div class="refactored-code"><h4>Refactored Code:</h4><pre><code>${escapeHtml(data.refactored_code)}</code></pre></div>` : ''}
         `;
         break;
       case 'analyse':
         html = `
           <h4>Analysis:</h4>
-          <p>${escapeHtml(data?.analysis || 'No analysis')}</p>
-          ${data?.fixed_code ? `<h4>Fixed Code:</h4><pre><code>${escapeHtml(data.fixed_code)}</code></pre>` : ''}
+          <p>${escapeHtml(data.analysis || 'No analysis')}</p>
+          ${data.fixed_code ? `<h4>Fixed Code:</h4><pre><code>${escapeHtml(data.fixed_code)}</code></pre>` : ''}
         `;
         break;
       case 'explain':
         html = `
           <h4>Explanation:</h4>
-          <p>${escapeHtml(data?.explanation || 'No explanation')}</p>
+          <p>${escapeHtml(data.explanation || 'No explanation')}</p>
           <h5>Key Concepts:</h5>
-          <ul>${Array.isArray(data?.key_concepts) ? data.key_concepts.map(c => `<li>${escapeHtml(c)}</li>`).join('') : ''}${!Array.isArray(data?.key_concepts) || data.key_concepts.length === 0 ? '<li>None</li>' : ''}</ul>
+          <ul>${data.key_concepts?.map(c => `<li>${escapeHtml(c)}</li>`).join('') || '<li>None</li>'}</ul>
         `;
         break;
       case 'chat':
       default:
         html = `
           <h4>AI Response:</h4>
-          <p>${escapeHtml(data?.reply || 'No response')}</p>
-          ${data?.improved_code ? `<h4>Improved Code:</h4><pre><code>${escapeHtml(data.improved_code)}</code></pre>` : ''}
+          <p>${escapeHtml(data.reply || 'No response')}</p>
+          ${data.improved_code ? `<h4>Improved Code:</h4><pre><code>${escapeHtml(data.improved_code)}</code></pre>` : ''}
         `;
     }
 

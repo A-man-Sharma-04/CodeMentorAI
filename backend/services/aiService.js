@@ -18,349 +18,21 @@ async function safeJsonParse(content, fallback) {
     m = text.match(/```\s*\n([\s\S]*?)\n\s*```/i);
     if (m && m[1]) candidates.push(m[1].trim());
 
-    // Full content if JSON-like - try this first as it's most likely
+    // Raw JSON blocks
+    let blocks = text.match(/\{[\s\S]*?\}/g);
+    if (blocks) {
+      blocks.filter(b => b.length > 20).forEach(b => candidates.push(b.trim()));
+    }
+
+    // Full content if JSON-like
     const trimmed = text.trim();
     if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
       candidates.push(trimmed);
     }
 
-    // Raw JSON blocks - improved to handle nested structures
-    let braceCount = 0;
-    let start = -1;
-    for (let i = 0; i < text.length; i++) {
-      if (text[i] === '{') {
-        if (braceCount === 0) start = i;
-        braceCount++;
-      } else if (text[i] === '}') {
-        braceCount--;
-        if (braceCount === 0 && start !== -1) {
-          const block = text.substring(start, i + 1);
-          if (block.length > 20) candidates.push(block.trim());
-          start = -1;
-        }
-      }
-    }
-
-    // Dedupe, sort largest first, top 5
-    const unique = [...new Set(candidates)].sort((a, b) => b.length - a.length).slice(0, 5);
+    // Dedupe, sort largest first, top 3
+    const unique = [...new Set(candidates)].sort((a, b) => b.length - a.length).slice(0, 3);
     return unique;
-  }
-
-  function stripJsonComments(jsonString) {
-    let result = '';
-    let inString = false;
-    let isEscaped = false;
-    let inLineComment = false;
-    let inBlockComment = false;
-
-    for (let i = 0; i < jsonString.length; i++) {
-      const char = jsonString[i];
-      const next = jsonString[i + 1];
-
-      if (inLineComment) {
-        if (char === '\n' || char === '\r') {
-          inLineComment = false;
-          result += char;
-        }
-        continue;
-      }
-
-      if (inBlockComment) {
-        if (char === '*' && next === '/') {
-          inBlockComment = false;
-          i++;
-        }
-        continue;
-      }
-
-      if (inString) {
-        result += char;
-        if (isEscaped) {
-          isEscaped = false;
-        } else if (char === '\\') {
-          isEscaped = true;
-        } else if (char === '"') {
-          inString = false;
-        }
-        continue;
-      }
-
-      if (char === '"') {
-        inString = true;
-        result += char;
-        continue;
-      }
-
-      if (char === '/' && next === '/') {
-        inLineComment = true;
-        i++;
-        continue;
-      }
-
-      if (char === '/' && next === '*') {
-        inBlockComment = true;
-        i++;
-        continue;
-      }
-
-      result += char;
-    }
-
-    return result;
-  }
-
-  function convertBacktickValuesToJsonStrings(text) {
-    let result = '';
-    let inDoubleString = false;
-    let isEscaped = false;
-
-    for (let i = 0; i < text.length; i++) {
-      const char = text[i];
-
-      if (inDoubleString) {
-        result += char;
-        if (isEscaped) {
-          isEscaped = false;
-        } else if (char === '\\') {
-          isEscaped = true;
-        } else if (char === '"') {
-          inDoubleString = false;
-        }
-        continue;
-      }
-
-      if (char === '"') {
-        inDoubleString = true;
-        result += char;
-        continue;
-      }
-
-      if (char === ':' ) {
-        result += char;
-
-        let j = i + 1;
-        while (j < text.length && /\s/.test(text[j])) {
-          result += text[j];
-          j++;
-        }
-
-        if (text[j] === '`') {
-          j++;
-          let backtickContent = '';
-          let backtickEscaped = false;
-
-          while (j < text.length) {
-            const btChar = text[j];
-            if (backtickEscaped) {
-              backtickContent += btChar;
-              backtickEscaped = false;
-              j++;
-              continue;
-            }
-
-            if (btChar === '\\') {
-              backtickContent += btChar;
-              backtickEscaped = true;
-              j++;
-              continue;
-            }
-
-            if (btChar === '`') {
-              break;
-            }
-
-            backtickContent += btChar;
-            j++;
-          }
-
-          if (j < text.length && text[j] === '`') {
-            result += JSON.stringify(backtickContent);
-            i = j;
-            continue;
-          }
-
-          // No matching closing backtick: keep original text from this point.
-          result += '`' + backtickContent;
-          i = j - 1;
-          continue;
-        }
-
-        i = j - 1;
-        continue;
-      }
-
-      result += char;
-    }
-
-    return result;
-  }
-
-  function removeTrailingCommas(jsonString) {
-    let result = '';
-    let inString = false;
-    let isEscaped = false;
-
-    for (let i = 0; i < jsonString.length; i++) {
-      const char = jsonString[i];
-
-      if (inString) {
-        result += char;
-        if (isEscaped) {
-          isEscaped = false;
-        } else if (char === '\\') {
-          isEscaped = true;
-        } else if (char === '"') {
-          inString = false;
-        }
-        continue;
-      }
-
-      if (char === '"') {
-        inString = true;
-        result += char;
-        continue;
-      }
-
-      if (char === ',') {
-        let j = i + 1;
-        while (j < jsonString.length && /\s/.test(jsonString[j])) {
-          j++;
-        }
-        if (jsonString[j] === '}' || jsonString[j] === ']') {
-          continue;
-        }
-      }
-
-      result += char;
-    }
-
-    return result;
-  }
-
-  function cleanControlCharacters(jsonString) {
-    return jsonString.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, ' ');
-  }
-
-  function escapeInvalidStringControls(jsonString) {
-    let result = '';
-    let inString = false;
-    let isEscaped = false;
-
-    for (let i = 0; i < jsonString.length; i++) {
-      const char = jsonString[i];
-
-      if (!inString) {
-        if (char === '"') {
-          inString = true;
-        }
-        result += char;
-        continue;
-      }
-
-      if (isEscaped) {
-        result += char;
-        isEscaped = false;
-        continue;
-      }
-
-      if (char === '\\') {
-        result += char;
-        isEscaped = true;
-        continue;
-      }
-
-      if (char === '"') {
-        inString = false;
-        result += char;
-        continue;
-      }
-
-      // JSON strings cannot contain raw control characters.
-      if (char === '\n') {
-        result += '\\n';
-        continue;
-      }
-      if (char === '\r') {
-        result += '\\r';
-        continue;
-      }
-      if (char === '\t') {
-        result += '\\t';
-        continue;
-      }
-
-      const code = char.charCodeAt(0);
-      if (code < 32 || code === 127) {
-        result += ' ';
-        continue;
-      }
-
-      result += char;
-    }
-
-    return result;
-  }
-
-  function extractFirstBalancedObject(text) {
-    let inString = false;
-    let isEscaped = false;
-    let braceCount = 0;
-    let start = -1;
-
-    for (let i = 0; i < text.length; i++) {
-      const char = text[i];
-
-      if (inString) {
-        if (isEscaped) {
-          isEscaped = false;
-        } else if (char === '\\') {
-          isEscaped = true;
-        } else if (char === '"') {
-          inString = false;
-        }
-        continue;
-      }
-
-      if (char === '"') {
-        inString = true;
-        continue;
-      }
-
-      if (char === '{') {
-        if (braceCount === 0) {
-          start = i;
-        }
-        braceCount++;
-        continue;
-      }
-
-      if (char === '}') {
-        if (braceCount > 0) {
-          braceCount--;
-          if (braceCount === 0 && start !== -1) {
-            return text.substring(start, i + 1).trim();
-          }
-        }
-      }
-    }
-
-    return null;
-  }
-
-  function looksLikeObjectFragment(text) {
-    const trimmed = text.trim();
-    if (!trimmed || trimmed.startsWith('{') || trimmed.startsWith('[')) {
-      return false;
-    }
-    return /^"[^"]+"\s*:/.test(trimmed);
-  }
-
-  function normalizeJsonCandidate(input) {
-    return cleanControlCharacters(
-      escapeInvalidStringControls(
-        removeTrailingCommas(stripJsonComments(convertBacktickValuesToJsonStrings(input.trim())))
-      )
-    ).trim();
   }
 
   const candidates = extractJsonCandidates(content);
@@ -369,62 +41,26 @@ async function safeJsonParse(content, fallback) {
   for (let i = 0; i < candidates.length; i++) {
     const candidate = candidates[i];
     try {
-      const cleaned = normalizeJsonCandidate(candidate);
+      // Robust cleaning
+      let cleaned = candidate
+        .replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '') // comments
+        .replace(/\s+/g, ' ')
+        .replace(/,\s*([}\]])/g, '$1') // trailing commas
+        .trim();
 
-      // Attempt 1: parse original candidate exactly as returned.
-      let parsed;
-      try {
-        parsed = JSON.parse(candidate);
-      } catch {
-        // Attempt 2: parse normalized candidate.
-        try {
-          parsed = JSON.parse(cleaned);
-        } catch {
-          // Attempt 3: parse first balanced object from original/normalized text.
-          const extractedOriginal = extractFirstBalancedObject(candidate);
-          const extractedCleaned = extractFirstBalancedObject(cleaned);
-          if (extractedOriginal) {
-            try {
-              parsed = JSON.parse(extractedOriginal);
-            } catch {
-              if (!extractedCleaned) {
-                throw new Error('No parseable balanced JSON object found');
-              }
-              parsed = JSON.parse(extractedCleaned);
-            }
-          } else if (extractedCleaned) {
-            parsed = JSON.parse(extractedCleaned);
-          } else {
-            // Attempt 4: if model returned key/value fragment, wrap as object.
-            if (looksLikeObjectFragment(cleaned)) {
-              parsed = JSON.parse(`{${cleaned}}`);
-            } else {
-              throw new Error('No parseable JSON candidate variants found');
-            }
-          }
-        }
-      }
+      const parsed = JSON.parse(cleaned);
 
-      // Validate that it's an object
-      if (typeof parsed !== 'object' || parsed === null) {
-        console.log(`⏭️ Attempt ${i + 1} failed: not an object`);
-        continue;
-      }
-
-      // Check if it has at least some of the expected keys
-      const expectedKeys = Object.keys(fallback);
-      const hasExpectedKey = expectedKeys.some(key => key in parsed);
-      
-      if (hasExpectedKey || expectedKeys.length === 0) {
+      // Quick schema check - must have some expected fields from fallback
+      if (Object.keys(fallback).some(key => parsed.hasOwnProperty(key))) {
         console.log(`✅ Parsed successfully on attempt ${i + 1}`);
-        return { ...fallback, ...parsed };
+        return parsed;
       }
     } catch (e) {
-      console.log(`⏭️ Attempt ${i + 1} failed: ${e.message.substring(0, 60)}`);
+      console.log(`⏭️ Attempt ${i + 1} failed: ${e.message.substring(0, 50)}`);
     }
   }
 
-  console.error(`❌ All parse attempts (${candidates.length}) failed. Using fallback. Raw sample:`, content.substring(0, 200) + '...');
+  console.error(`❌ All parse attempts (${candidates.length}) failed. Raw sample:`, content.substring(0, 200) + '...');
   return fallback;
 }
 
