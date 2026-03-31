@@ -81,13 +81,19 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!response.ok) throw new Error(`Server Error: ${response.status}`);
 
       const data = await response.json();
+      
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid response format from server');
+      }
+      
       displayResults(data, currentTab);
     } catch (error) {
       const errorMsg = error.message || 'Unknown error occurred';
       if (resultContent) {
-        resultContent.innerHTML = `<div class="error"><h4>⚠️ Error</h4><p>${errorMsg}</p><p>👉 Make sure backend is running and accessible</p></div>`;
+        resultContent.innerHTML = `<div class="error"><h4>⚠️ Error</h4><p>${escapeHtml(errorMsg)}</p><p>👉 Please:</p><ul><li>Ensure backend is running on port 5000</li><li>Verify GROQ_API_KEY is set in .env</li><li>Check browser console for details</li></ul></div>`;
         results?.classList.remove('hidden');
       }
+      console.error('API Error:', error);
     } finally {
       submitBtn.textContent = 'Get AI Feedback';
       submitBtn.disabled = false;

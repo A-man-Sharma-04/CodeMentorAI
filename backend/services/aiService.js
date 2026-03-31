@@ -6,14 +6,65 @@ const openai = new OpenAI({
   baseURL: "https://api.groq.com/openai/v1"
 });
 
-async function safeJsonParse(content, fallback = { reply: "AI service error", fix: "", improved_code: "" }) {
-  try {
-    return JSON.parse(content);
-  } catch {
-    console.error("JSON parse failed, raw AI output:", content);
-    return fallback;
+async function safeJsonParse(content, fallback) {
+  function extractJsonCandidates(text) {
+    const candidates = [];
+
+    // ```json ... ```
+    let m = text.match(/```json\s*\n([\s\S]*?)\n\s*```/i);
+    if (m && m[1]) candidates.push(m[1].trim());
+
+    // ``` ... ```
+    m = text.match(/```\s*\n([\s\S]*?)\n\s*```/i);
+    if (m && m[1]) candidates.push(m[1].trim());
+
+    // Raw JSON blocks
+    let blocks = text.match(/\{[\s\S]*?\}/g);
+    if (blocks) {
+      blocks.filter(b => b.length > 20).forEach(b => candidates.push(b.trim()));
+    }
+
+    // Full content if JSON-like
+    const trimmed = text.trim();
+    if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+      candidates.push(trimmed);
+    }
+
+    // Dedupe, sort largest first, top 3
+    const unique = [...new Set(candidates)].sort((a, b) => b.length - a.length).slice(0, 3);
+    return unique;
   }
+
+  const candidates = extractJsonCandidates(content);
+  console.log(`🔍 JSON candidates: ${candidates.length} (content: ${content.length} chars)`);
+
+  for (let i = 0; i < candidates.length; i++) {
+    const candidate = candidates[i];
+    try {
+      // Robust cleaning
+      let cleaned = candidate
+        .replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '') // comments
+        .replace(/\s+/g, ' ')
+        .replace(/,\s*([}\]])/g, '$1') // trailing commas
+        .trim();
+
+      const parsed = JSON.parse(cleaned);
+
+      // Quick schema check - must have some expected fields from fallback
+      if (Object.keys(fallback).some(key => parsed.hasOwnProperty(key))) {
+        console.log(`✅ Parsed successfully on attempt ${i + 1}`);
+        return parsed;
+      }
+    } catch (e) {
+      console.log(`⏭️ Attempt ${i + 1} failed: ${e.message.substring(0, 50)}`);
+    }
+  }
+
+  console.error(`❌ All parse attempts (${candidates.length}) failed. Raw sample:`, content.substring(0, 200) + '...');
+  return fallback;
 }
+
+// ... (all other functions unchanged, with safeJsonParse(content, fallback) calls - chatWithAI, explainCode, analyseCode, reviewCode as before)
 
 async function chatWithAI(message, code, language) {
   const systemPrompt = `You are a senior software engineer and mentor.
@@ -24,7 +75,7 @@ Help the user by:
 - Suggesting improvements
 - Giving optimized solutions
 
-Always respond in JSON:
+IMPORTANT: Return ONLY valid JSON (no markdown, no code blocks, no extra text):
 {
   "reply": "your response",
   "fix": "suggested fix explanation",
@@ -50,7 +101,7 @@ ${code || "No code provided"}
     });
 
     const content = response.choices[0].message.content;
-    return safeJsonParse(content);
+    return safeJsonParse(content, { reply: "AI service error", fix: "", improved_code: "" });
   } catch (error) {
     console.error("Groq API error:", JSON.stringify({ 
       message: error.message, 
@@ -74,7 +125,7 @@ Explain the provided code step by step:
 - Data flow
 - Potential issues/improvements
 
-Respond in JSON:
+IMPORTANT: Return ONLY valid JSON (no markdown, no code blocks, no extra text):
 {
   "explanation": "detailed step-by-step explanation",
   "key_concepts": ["list", "of", "concepts"],
@@ -125,7 +176,7 @@ Analyze the code for:
 
 Provide fixes.
 
-Respond in JSON:
+IMPORTANT: Return ONLY valid JSON (no markdown, no code blocks, no extra text):
 {
   "analysis": "detailed issues found",
   "fixes": "step-by-step fixes",
@@ -178,7 +229,7 @@ Perform a comprehensive code review including:
 
 Language: ${language || 'unknown'}
 
-Respond ONLY in valid JSON format:
+IMPORTANT: Return ONLY valid JSON (no markdown, no code blocks, no extra text):
 {
   "score": 95,
   "summary": "Overall review summary",
@@ -230,4 +281,3 @@ ${code}
 }
 
 module.exports = { chatWithAI, explainCode, analyseCode, reviewCode };
-
