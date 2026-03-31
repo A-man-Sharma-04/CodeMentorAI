@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function () {
     results?.classList.remove('hidden');
 
     // Score
-    if (scoreBadge) {
+    if (scoreBadge && (typeof data?.score === 'number' || data?.score)) {
       scoreBadge.innerHTML = `
         <span class="badge score">
           Score: ${data.score ?? 'N/A'}/100
@@ -106,28 +106,28 @@ document.addEventListener('DOMContentLoaded', function () {
       `;
     }
 
-    // Issues
-    const issuesHtml = data.issues?.length
+    // Issues - with safe array checking
+    const issuesHtml = Array.isArray(data?.issues) && data.issues.length > 0
       ? data.issues.map(issue => `
-        <div class="issue-item ${issue.severity || 'info'}">
+        <div class="issue-item ${issue?.severity || 'info'}">
           <strong>
-            ${(issue.type || 'Issue').toUpperCase()} 
-            (${(issue.severity || 'info').toUpperCase()})
+            ${(issue?.type || 'Issue').toUpperCase()} 
+            (${(issue?.severity || 'info').toUpperCase()})
           </strong>
-          ${issue.line ? ` - Line ${issue.line}` : ''}
-          <p>${issue.description || issue}</p>
-          ${issue.fix ? `<code>${escapeHtml(issue.fix)}</code>` : ''}
+          ${typeof issue?.line === 'number' ? ` - Line ${issue.line}` : ''}
+          <p>${escapeHtml(issue?.description || issue || '')}</p>
+          ${issue?.fix ? `<code>${escapeHtml(issue.fix)}</code>` : ''}
         </div>
       `).join('')
       : `<p class="no-issues">🎉 No issues found! Great job.</p>`;
 
     // Summary
-    const summaryHtml = data.summary
-      ? `<div class="review-summary">${data.summary}</div>`
+    const summaryHtml = data?.summary
+      ? `<div class="review-summary">${escapeHtml(data.summary)}</div>`
       : '';
 
-    // Refactored Code
-const refactoredHtml = data.optimized_code || data.refactored_code
+    // Refactored Code - check both field names
+    const refactoredHtml = (data?.optimized_code || data?.refactored_code)
       ? `
         <div class="refactored-code">
           <h4>✨ Optimized Code:</h4>
