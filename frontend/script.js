@@ -34,6 +34,12 @@ document.addEventListener('DOMContentLoaded', function() {
   const results = document.getElementById('results');
   const scoreBadge = document.getElementById('score-badge');
   const resultContent = document.getElementById('result-content');
+
+  // Exit early on pages that do not include the review app UI.
+  if (!codeEditor || !languageSelect || !submitBtn || !resultContent) {
+    return;
+  }
+
   let currentTab = 'review'; // Default to review
 
   // Tab switching

@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function () {
         resultContent.innerHTML = `
           <div class="error">
             <h4>⚠️ Error</h4>
-            <p>${errorMsg}</p>
+            <p>${escapeHtml(errorMsg)}</p>
             <p>👉 Make sure backend is running and accessible</p>
           </div>
         `;

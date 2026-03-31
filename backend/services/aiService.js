@@ -46,30 +46,321 @@ async function safeJsonParse(content, fallback) {
     return unique;
   }
 
-  function cleanControlCharacters(jsonString) {
-    // Ultra-aggressive cleaning: Replace ALL literal newlines, carriage returns, and tabs
-    // that appear in the JSON with a space character
-    // This happens BEFORE we try to parse, so we don't break the JSON structure
-    
-    // Strategy: Process the string to escape or remove problem characters
+  function stripJsonComments(jsonString) {
     let result = '';
-    
+    let inString = false;
+    let isEscaped = false;
+    let inLineComment = false;
+    let inBlockComment = false;
+
     for (let i = 0; i < jsonString.length; i++) {
       const char = jsonString[i];
-      const code = char.charCodeAt(0);
-      
-      // Allow: normal printable ASCII (32-126) and DEL (127) and high Unicode
-      // Replace: control characters (0-31) and DEL (127) with space
-      if (code < 32 || code === 127) {
-        // These are control characters - replace with space
-        result += ' ';
-      } else {
-        // Keep everything else as-is
+      const next = jsonString[i + 1];
+
+      if (inLineComment) {
+        if (char === '\n' || char === '\r') {
+          inLineComment = false;
+          result += char;
+        }
+        continue;
+      }
+
+      if (inBlockComment) {
+        if (char === '*' && next === '/') {
+          inBlockComment = false;
+          i++;
+        }
+        continue;
+      }
+
+      if (inString) {
         result += char;
+        if (isEscaped) {
+          isEscaped = false;
+        } else if (char === '\\') {
+          isEscaped = true;
+        } else if (char === '"') {
+          inString = false;
+        }
+        continue;
+      }
+
+      if (char === '"') {
+        inString = true;
+        result += char;
+        continue;
+      }
+
+      if (char === '/' && next === '/') {
+        inLineComment = true;
+        i++;
+        continue;
+      }
+
+      if (char === '/' && next === '*') {
+        inBlockComment = true;
+        i++;
+        continue;
+      }
+
+      result += char;
+    }
+
+    return result;
+  }
+
+  function convertBacktickValuesToJsonStrings(text) {
+    let result = '';
+    let inDoubleString = false;
+    let isEscaped = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+
+      if (inDoubleString) {
+        result += char;
+        if (isEscaped) {
+          isEscaped = false;
+        } else if (char === '\\') {
+          isEscaped = true;
+        } else if (char === '"') {
+          inDoubleString = false;
+        }
+        continue;
+      }
+
+      if (char === '"') {
+        inDoubleString = true;
+        result += char;
+        continue;
+      }
+
+      if (char === ':' ) {
+        result += char;
+
+        let j = i + 1;
+        while (j < text.length && /\s/.test(text[j])) {
+          result += text[j];
+          j++;
+        }
+
+        if (text[j] === '`') {
+          j++;
+          let backtickContent = '';
+          let backtickEscaped = false;
+
+          while (j < text.length) {
+            const btChar = text[j];
+            if (backtickEscaped) {
+              backtickContent += btChar;
+              backtickEscaped = false;
+              j++;
+              continue;
+            }
+
+            if (btChar === '\\') {
+              backtickContent += btChar;
+              backtickEscaped = true;
+              j++;
+              continue;
+            }
+
+            if (btChar === '`') {
+              break;
+            }
+
+            backtickContent += btChar;
+            j++;
+          }
+
+          if (j < text.length && text[j] === '`') {
+            result += JSON.stringify(backtickContent);
+            i = j;
+            continue;
+          }
+
+          // No matching closing backtick: keep original text from this point.
+          result += '`' + backtickContent;
+          i = j - 1;
+          continue;
+        }
+
+        i = j - 1;
+        continue;
+      }
+
+      result += char;
+    }
+
+    return result;
+  }
+
+  function removeTrailingCommas(jsonString) {
+    let result = '';
+    let inString = false;
+    let isEscaped = false;
+
+    for (let i = 0; i < jsonString.length; i++) {
+      const char = jsonString[i];
+
+      if (inString) {
+        result += char;
+        if (isEscaped) {
+          isEscaped = false;
+        } else if (char === '\\') {
+          isEscaped = true;
+        } else if (char === '"') {
+          inString = false;
+        }
+        continue;
+      }
+
+      if (char === '"') {
+        inString = true;
+        result += char;
+        continue;
+      }
+
+      if (char === ',') {
+        let j = i + 1;
+        while (j < jsonString.length && /\s/.test(jsonString[j])) {
+          j++;
+        }
+        if (jsonString[j] === '}' || jsonString[j] === ']') {
+          continue;
+        }
+      }
+
+      result += char;
+    }
+
+    return result;
+  }
+
+  function cleanControlCharacters(jsonString) {
+    return jsonString.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, ' ');
+  }
+
+  function escapeInvalidStringControls(jsonString) {
+    let result = '';
+    let inString = false;
+    let isEscaped = false;
+
+    for (let i = 0; i < jsonString.length; i++) {
+      const char = jsonString[i];
+
+      if (!inString) {
+        if (char === '"') {
+          inString = true;
+        }
+        result += char;
+        continue;
+      }
+
+      if (isEscaped) {
+        result += char;
+        isEscaped = false;
+        continue;
+      }
+
+      if (char === '\\') {
+        result += char;
+        isEscaped = true;
+        continue;
+      }
+
+      if (char === '"') {
+        inString = false;
+        result += char;
+        continue;
+      }
+
+      // JSON strings cannot contain raw control characters.
+      if (char === '\n') {
+        result += '\\n';
+        continue;
+      }
+      if (char === '\r') {
+        result += '\\r';
+        continue;
+      }
+      if (char === '\t') {
+        result += '\\t';
+        continue;
+      }
+
+      const code = char.charCodeAt(0);
+      if (code < 32 || code === 127) {
+        result += ' ';
+        continue;
+      }
+
+      result += char;
+    }
+
+    return result;
+  }
+
+  function extractFirstBalancedObject(text) {
+    let inString = false;
+    let isEscaped = false;
+    let braceCount = 0;
+    let start = -1;
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+
+      if (inString) {
+        if (isEscaped) {
+          isEscaped = false;
+        } else if (char === '\\') {
+          isEscaped = true;
+        } else if (char === '"') {
+          inString = false;
+        }
+        continue;
+      }
+
+      if (char === '"') {
+        inString = true;
+        continue;
+      }
+
+      if (char === '{') {
+        if (braceCount === 0) {
+          start = i;
+        }
+        braceCount++;
+        continue;
+      }
+
+      if (char === '}') {
+        if (braceCount > 0) {
+          braceCount--;
+          if (braceCount === 0 && start !== -1) {
+            return text.substring(start, i + 1).trim();
+          }
+        }
       }
     }
-    
-    return result;
+
+    return null;
+  }
+
+  function looksLikeObjectFragment(text) {
+    const trimmed = text.trim();
+    if (!trimmed || trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      return false;
+    }
+    return /^"[^"]+"\s*:/.test(trimmed);
+  }
+
+  function normalizeJsonCandidate(input) {
+    return cleanControlCharacters(
+      escapeInvalidStringControls(
+        removeTrailingCommas(stripJsonComments(convertBacktickValuesToJsonStrings(input.trim())))
+      )
+    ).trim();
   }
 
   const candidates = extractJsonCandidates(content);
@@ -78,26 +369,41 @@ async function safeJsonParse(content, fallback) {
   for (let i = 0; i < candidates.length; i++) {
     const candidate = candidates[i];
     try {
-      // Step 1: Remove comments
-      let cleaned = candidate
-        .replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '')
-        .trim();
+      const cleaned = normalizeJsonCandidate(candidate);
 
-      // Step 2: Remove trailing commas
-      cleaned = cleaned.replace(/,\s*([}\]])/g, '$1');
-
-      // Step 3: Clean unescaped control characters
-      cleaned = cleanControlCharacters(cleaned);
-
-      // Step 4: Final normalization - remove any remaining problematic whitespace
-      cleaned = cleaned
-        .replace(/[\n\r]+/g, ' ')  // Replace newlines with spaces
-        .replace(/\t+/g, ' ')      // Replace tabs with spaces
-        .replace(/  +/g, ' ')      // Collapse multiple spaces
-        .trim();
-
-      // Step 5: Parse
-      const parsed = JSON.parse(cleaned);
+      // Attempt 1: parse original candidate exactly as returned.
+      let parsed;
+      try {
+        parsed = JSON.parse(candidate);
+      } catch {
+        // Attempt 2: parse normalized candidate.
+        try {
+          parsed = JSON.parse(cleaned);
+        } catch {
+          // Attempt 3: parse first balanced object from original/normalized text.
+          const extractedOriginal = extractFirstBalancedObject(candidate);
+          const extractedCleaned = extractFirstBalancedObject(cleaned);
+          if (extractedOriginal) {
+            try {
+              parsed = JSON.parse(extractedOriginal);
+            } catch {
+              if (!extractedCleaned) {
+                throw new Error('No parseable balanced JSON object found');
+              }
+              parsed = JSON.parse(extractedCleaned);
+            }
+          } else if (extractedCleaned) {
+            parsed = JSON.parse(extractedCleaned);
+          } else {
+            // Attempt 4: if model returned key/value fragment, wrap as object.
+            if (looksLikeObjectFragment(cleaned)) {
+              parsed = JSON.parse(`{${cleaned}}`);
+            } else {
+              throw new Error('No parseable JSON candidate variants found');
+            }
+          }
+        }
+      }
 
       // Validate that it's an object
       if (typeof parsed !== 'object' || parsed === null) {
