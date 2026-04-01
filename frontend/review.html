@@ -43,7 +43,13 @@
                 <div class="main-layout">
                     <!-- Code Input (Left Panel) -->
                     <div class="input-section">
-                        <div class="input-header">
+    <div class="input-header">
+                            <div class="github-section">
+                                <button id="github-connect-btn" class="btn-secondary github-btn">
+                                    🔗 <span id="github-status">Connect GitHub</span>
+                                </button>
+                                <button id="github-repos-btn" class="btn-secondary github-btn hidden">My Repos</button>
+                            </div>
                             <select id="language-select" class="language-select" aria-label="Select programming language">
                                 <option value="javascript">JavaScript</option>
                                 <option value="python">Python</option>
@@ -53,6 +59,22 @@
                                 <option value="go">Go</option>
                             </select>
                             <button id="clear-btn" class="btn-secondary">Clear</button>
+                        </div>
+                        <!-- GitHub Repos Panel -->
+                        <div id="github-repos-panel" class="github-panel hidden">
+                            <div class="panel-header">
+                                <h4>📁 Your Repositories</h4>
+                                <button id="close-repos-btn" class="close-panel-btn">×</button>
+                            </div>
+                            <div id="repos-list" class="repos-list"></div>
+                        </div>
+                        <!-- GitHub Files Panel -->
+                        <div id="github-files-panel" class="github-panel hidden">
+                            <div class="panel-header">
+                                <h4>📄 Repository Files</h4>
+                                <button id="close-files-btn" class="close-panel-btn">×</button>
+                            </div>
+                            <div id="files-list" class="files-list"></div>
                         </div>
                         <textarea 
                             id="code-editor" 

@@ -17,6 +17,9 @@
     "openai": "^4.104.0"
   },
   "devDependencies": {
+    "@octokit/rest": "^22.0.1",
+    "cookie-parser": "^1.4.7",
+    "express-session": "^1.19.0",
     "nodemon": "^3.1.4"
   }
 }

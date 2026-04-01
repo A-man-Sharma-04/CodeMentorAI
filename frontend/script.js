@@ -159,6 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <p>${escapeHtml(data.reply || 'No response')}</p>
           ${data.improved_code ? `<h4>Improved Code:</h4><pre><code>${escapeHtml(data.improved_code)}</code></pre>` : ''}
         `;
+        break;
     }
 
     if (resultContent) {
@@ -203,3 +204,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
+function connectGitHub() {
+  const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+    ? 'http://localhost:5000/api/github/oauth' 
+    : 'https://codementorai-vqp8.onrender.com/api/github/oauth';
+  window.location.href = apiUrl;
+}
+// Global connectGitHub available for onclick handlers
