@@ -4,6 +4,16 @@ class AIChat {
     this.isOpen = false;
     this.messages = [];
     this.isLoading = false;
+    this.ids = {
+      widget: 'ai-chat-widget',
+      toggleBtn: 'ai-widget-toggle-btn',
+      panel: 'ai-widget-panel',
+      closeBtn: 'ai-widget-close-btn',
+      messages: 'ai-widget-messages',
+      input: 'ai-widget-input',
+      sendBtn: 'ai-widget-send-btn',
+      loading: 'ai-widget-loading',
+    };
     this.init();
   }
 
@@ -19,28 +29,30 @@ class AIChat {
   }
 
   createWidget() {
+    const { widget, toggleBtn, panel, closeBtn, messages, input, sendBtn, loading } = this.ids;
+
     // Container for widget
     const widgetHTML = `
       <!-- Floating Chat Widget -->
-      <div id="ai-chat-widget" class="ai-chat-widget">
+      <div id="${widget}" class="ai-chat-widget">
         <!-- Floating Button -->
-        <button id="chat-toggle-btn" class="chat-toggle-btn" title="Chat with AI Code Mentor">
+        <button id="${toggleBtn}" class="chat-toggle-btn" title="Chat with AI Code Mentor">
           <span class="chat-icon">💬</span>
         </button>
 
         <!-- Chat Panel -->
-        <div id="chat-panel" class="chat-panel hidden">
+        <div id="${panel}" class="chat-panel hidden">
           <!-- Header -->
           <div class="chat-header">
             <div class="chat-title">
               <span class="ai-icon">🤖</span>
               <h3>AI Code Mentor</h3>
             </div>
-            <button id="chat-close-btn" class="chat-close-btn">×</button>
+            <button id="${closeBtn}" class="chat-close-btn">×</button>
           </div>
 
           <!-- Messages Area -->
-          <div id="chat-messages" class="chat-messages">
+          <div id="${messages}" class="chat-messages">
             <div class="message ai-message">
               <div class="message-content">
                 <p>Hey! 👋 I'm your AI Code Mentor. Ask me anything about your code:</p>
@@ -57,19 +69,19 @@ class AIChat {
           <!-- Input Area -->
           <div class="chat-input-area">
             <textarea 
-              id="chat-input" 
+              id="${input}" 
               class="chat-input" 
               placeholder="Ask a question, paste code, or describe a problem... (Shift+Enter for new line)"
               rows="3"
             ></textarea>
-            <button id="chat-send-btn" class="chat-send-btn">
+            <button id="${sendBtn}" class="chat-send-btn">
               <span>Send</span>
               <span class="send-icon">→</span>
             </button>
           </div>
 
           <!-- Loading Indicator -->
-          <div id="chat-loading" class="chat-loading hidden">
+          <div id="${loading}" class="chat-loading hidden">
             <span class="loading-spinner"></span>
             <span>AI is thinking...</span>
           </div>
@@ -82,10 +94,10 @@ class AIChat {
   }
 
   attachEventListeners() {
-    const toggleBtn = document.getElementById('chat-toggle-btn');
-    const closeBtn = document.getElementById('chat-close-btn');
-    const sendBtn = document.getElementById('chat-send-btn');
-    const input = document.getElementById('chat-input');
+    const toggleBtn = document.getElementById(this.ids.toggleBtn);
+    const closeBtn = document.getElementById(this.ids.closeBtn);
+    const sendBtn = document.getElementById(this.ids.sendBtn);
+    const input = document.getElementById(this.ids.input);
 
     // Toggle chat panel
     toggleBtn.addEventListener('click', () => this.toggleChat());
@@ -119,22 +131,22 @@ class AIChat {
 
   openChat() {
     this.isOpen = true;
-    const panel = document.getElementById('chat-panel');
+    const panel = document.getElementById(this.ids.panel);
     panel.classList.remove('hidden');
     panel.classList.add('open');
     
-    document.getElementById('chat-input').focus();
+    document.getElementById(this.ids.input).focus();
   }
 
   closeChat() {
     this.isOpen = false;
-    const panel = document.getElementById('chat-panel');
+    const panel = document.getElementById(this.ids.panel);
     panel.classList.remove('open');
     panel.classList.add('hidden');
   }
 
   async sendMessage() {
-    const input = document.getElementById('chat-input');
+    const input = document.getElementById(this.ids.input);
     const message = input.value.trim();
 
     if (!message || this.isLoading) return;
@@ -196,12 +208,12 @@ class AIChat {
       );
     } finally {
       this.showLoading(false);
-      document.getElementById('chat-input').focus();
+      document.getElementById(this.ids.input).focus();
     }
   }
 
   addMessage(content, sender, metadata = {}) {
-    const messagesContainer = document.getElementById('chat-messages');
+    const messagesContainer = document.getElementById(this.ids.messages);
     
     const messageEl = document.createElement('div');
     messageEl.className = `message ${sender}-message`;
@@ -305,7 +317,7 @@ class AIChat {
   }
 
   scrollToBottom() {
-    const messagesContainer = document.getElementById('chat-messages');
+    const messagesContainer = document.getElementById(this.ids.messages);
     setTimeout(() => {
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }, 100);
@@ -313,7 +325,7 @@ class AIChat {
 
   showLoading(show) {
     this.isLoading = show;
-    const loading = document.getElementById('chat-loading');
+    const loading = document.getElementById(this.ids.loading);
     if (show) {
       loading.classList.remove('hidden');
       this.scrollToBottom();
@@ -357,7 +369,7 @@ class AIChat {
   }
 
   clearChat() {
-    document.getElementById('chat-messages').innerHTML = '';
+    document.getElementById(this.ids.messages).innerHTML = '';
     this.messages = [];
     localStorage.removeItem('ai-chat-history');
   }
