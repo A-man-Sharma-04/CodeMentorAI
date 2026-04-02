@@ -3,16 +3,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     ? 'http://localhost:5000'
     : '';
 
-  const token = localStorage.getItem('github_token');
-
   function buildGitHubRequestOptions(overrides = {}) {
     const headers = {
       ...(overrides.headers || {}),
     };
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
 
     return {
       credentials: 'include',
@@ -34,9 +28,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   const receivedToken = github?.handleOAuthCallback();
   console.log('token received:', !!receivedToken);
-  console.log('token stored:', !!token);
   const sessionConnected = await getSessionConnected();
-  const connected = !!token || sessionConnected;
+  const connected = sessionConnected;
 
   const connectionStatus = document.getElementById('connection-status');
   let githubUserLogin = '';
@@ -321,6 +314,9 @@ document.addEventListener('DOMContentLoaded', async function () {
 
       const data = await res.json();
       displayAnalysis(data);
+
+      // Keep code viewer synced with latest source content even when analyze response omits content.
+      await loadFileContent(currentFile);
     } catch (err) {
       aiContent.innerHTML = `<div class="error">Analysis failed: ${escapeHtml(err.message)}</div>`;
     } finally {

@@ -213,12 +213,13 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 function connectGitHub() {
   const apiUrl = getApiUrl();
-  const token = localStorage.getItem('github_token');
-  if (token) {
-    window.location.href = 'repo-review.html';
-    return;
-  }
   window.location.href = `${apiUrl}/auth/github`;
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text == null ? '' : String(text);
+  return div.innerHTML;
 }
 
 // GitHub Dashboard Functions (for index.html)
@@ -229,7 +230,13 @@ async function loadGitHubDashboard() {
   if (oauthError) {
     const errorMsg = decodeURIComponent(oauthError);
     console.warn('OAuth cancelled:', errorMsg);
-    document.getElementById('github-notice')?.insertAdjacentHTML('beforeend', `<div class="error-banner" style="background: #fee; padding: 1rem; margin: 1rem 0; border-radius: 4px;">⚠️ ${errorMsg}. <a href="#" onclick="connectGitHub()">Try again</a></div>`);
+    const notice = document.getElementById('github-notice');
+    if (notice) {
+      notice.insertAdjacentHTML(
+        'beforeend',
+        `<div class="error-banner" style="background: #fee; padding: 1rem; margin: 1rem 0; border-radius: 4px;">⚠️ ${escapeHtml(errorMsg)}. <a href="#" onclick="connectGitHub(); return false;">Try again</a></div>`
+      );
+    }
     window.history.replaceState({}, document.title, window.location.pathname);
     return;
   }

@@ -228,14 +228,14 @@
                 <div class="testimonial-card">
                     <p>"The GitHub integration is game-changing. PR reviews are now instant."</p>
                     <div class="author">
-                        <span class="author-name">Mike R., CTO</span>
-                        <span class="company">@ScaleUp</span>
+                        <span class="author-name">Shivam Maurya , CSE Student</span>
+                        <span class="company">@University</span>
                     </div>
                 </div>
                 <div class="testimonial-card">
                     <p>"Perfect for students. Helped me ace my coding interviews."</p>
                     <div class="author">
-                        <span class="author-name">Alex L., CS Student</span>
+                        <span class="author-name">Aman Sharma , CSE Student</span>
                         <span class="company">@University</span>
                     </div>
                 </div>
@@ -289,7 +289,7 @@
     <script src="chat-widget.js"></script>
     <script>
             function updateIndexConnectionBadge() {
-                const hasToken = !!localStorage.getItem('github_token');
+                const hasToken = typeof github?.isConnected === 'function' ? github.isConnected() : false;
                 const heroConnectBtn = document.getElementById('github-connect-btn');
                 const noticeConnectBtn = document.getElementById('github-notice-connect-btn');
                 const finalConnectBtn = document.getElementById('final-github-connect');

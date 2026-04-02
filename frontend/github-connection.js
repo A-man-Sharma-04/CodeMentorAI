@@ -8,6 +8,14 @@ class GitHubConnectionManager {
     this.CONNECTION_CACHE_KEY = 'github_connected_cache';
     this.TOKEN_KEY = 'github_token';
     this.API_URL = this.getApiUrl();
+    this.clearLegacyTokenStorage();
+  }
+
+  clearLegacyTokenStorage() {
+    const legacyToken = localStorage.getItem(this.TOKEN_KEY);
+    if (legacyToken) {
+      localStorage.removeItem(this.TOKEN_KEY);
+    }
   }
 
   /**
@@ -78,12 +86,12 @@ class GitHubConnectionManager {
   }
 
   setToken(token) {
+    // Tokens are intentionally not persisted in browser storage.
     if (!token) return;
-    localStorage.setItem(this.TOKEN_KEY, token);
   }
 
   getToken() {
-    return localStorage.getItem(this.TOKEN_KEY);
+    return null;
   }
 
   /**
@@ -97,7 +105,7 @@ class GitHubConnectionManager {
     if (token) {
       this.setToken(token);
       this.setConnected(true);
-      console.log('Using token:', token);
+      console.log('OAuth token received and cached');
     }
 
     if (connected === '1') {

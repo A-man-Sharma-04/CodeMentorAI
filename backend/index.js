@@ -65,6 +65,13 @@ app.use(limiter);
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ limit: '10kb', extended: true }));
 app.use(cookieParser());
+const isProduction = process.env.NODE_ENV === 'production';
+
+if (isProduction && !process.env.SESSION_SECRET) {
+  console.error('❌ FATAL: SESSION_SECRET must be set in production.');
+  process.exit(1);
+}
+
 const sessionSecret = process.env.SESSION_SECRET || 'dev-session-secret';
 
 if (!process.env.SESSION_SECRET) {

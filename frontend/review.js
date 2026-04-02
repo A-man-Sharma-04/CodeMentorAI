@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', function () {
             (${(issue.severity || 'info').toUpperCase()})
           </strong>
           ${issue.line ? ` - Line ${issue.line}` : ''}
-          <p>${issue.description || issue}</p>
+            <p>${escapeHtml(issue.description || issue)}</p>
           ${issue.fix ? `<code>${escapeHtml(issue.fix)}</code>` : ''}
         </div>
       `).join('')
@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Summary
     const summaryHtml = data.summary
-      ? `<div class="review-summary">${data.summary}</div>`
+        ? `<div class="review-summary">${escapeHtml(data.summary)}</div>`
       : '';
 
     // Refactored Code

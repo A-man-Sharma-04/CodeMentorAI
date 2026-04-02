@@ -2,6 +2,7 @@ require('dotenv').config();
 const { Octokit } = require('@octokit/rest');
 
 const userTokens = new Map(); // In-memory store: sessionId -> {access_token, user}
+const TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 
 // Config from env
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
@@ -10,6 +11,40 @@ const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
 if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET) {
   console.warn('⚠️ GITHUB_CLIENT_ID or GITHUB_CLIENT_SECRET not set in .env');
 }
+
+function setUserToken(sessionId, accessToken) {
+  userTokens.set(sessionId, {
+    access_token: accessToken,
+    createdAt: Date.now(),
+  });
+}
+
+function getUserToken(sessionId) {
+  const userData = userTokens.get(sessionId);
+  if (!userData?.access_token) {
+    return null;
+  }
+
+  const age = Date.now() - (userData.createdAt || 0);
+  if (age > TOKEN_TTL_MS) {
+    userTokens.delete(sessionId);
+    return null;
+  }
+
+  return userData;
+}
+
+function cleanupExpiredTokens() {
+  const now = Date.now();
+  for (const [sessionId, userData] of userTokens.entries()) {
+    const age = now - (userData.createdAt || 0);
+    if (age > TOKEN_TTL_MS) {
+      userTokens.delete(sessionId);
+    }
+  }
+}
+
+setInterval(cleanupExpiredTokens, 60 * 60 * 1000).unref();
 
 // GitHub OAuth token exchange (server-side)
 async function exchangeCodeForToken(code, sessionId, state) {
@@ -40,13 +75,13 @@ async function exchangeCodeForToken(code, sessionId, state) {
     throw new Error('No access token returned by GitHub');
   }
 
-  userTokens.set(sessionId, { access_token: tokenData.access_token });
+  setUserToken(sessionId, tokenData.access_token);
   return { success: true, sessionId, access_token: tokenData.access_token };
 }
 
 // Get Octokit with user token
 function getOctokit(sessionId) {
-  const userData = userTokens.get(sessionId);
+  const userData = getUserToken(sessionId);
   if (!userData?.access_token) {
     throw new Error('No GitHub token found for session. Connect GitHub first.');
   }
@@ -197,6 +232,8 @@ module.exports = {
   getRepoFiles,
   getFileContent,
   getPullRequests,
+  getUserToken,
+  setUserToken,
   userTokens, // exposed for routes
 };
 

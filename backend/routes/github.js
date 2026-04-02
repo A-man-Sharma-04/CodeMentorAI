@@ -9,6 +9,8 @@ const {
   getRepoFiles,
   getFileContent,
   getPullRequests,
+  getUserToken,
+  setUserToken,
   userTokens,
 } = require('../services/githubService');
 
@@ -43,18 +45,65 @@ function validateOwnerAndRepo(owner, repo) {
   }
 }
 
-function ensureGitHubSession(req, res) {
-  const authHeader = req.headers.authorization || '';
-  if (authHeader.startsWith('Bearer ')) {
-    const token = authHeader.slice('Bearer '.length).trim();
-    if (token) {
-      userTokens.set(req.sessionID, { access_token: token });
-      req.session.githubConnected = true;
-      return true;
+function normalizeBearerToken(rawToken) {
+  if (!rawToken) return null;
+
+  let token = String(rawToken).trim();
+  if (!token) return null;
+
+  // Guard common bad values from legacy/localStorage-based token flows.
+  if (token === 'null' || token === 'undefined' || token === '[object Object]') {
+    return null;
+  }
+
+  if (
+    (token.startsWith('"') && token.endsWith('"')) ||
+    (token.startsWith("'") && token.endsWith("'"))
+  ) {
+    token = token.slice(1, -1).trim();
+  }
+
+  if (token.startsWith('{') && token.endsWith('}')) {
+    try {
+      const parsed = JSON.parse(token);
+      token = String(
+        parsed?.access_token || parsed?.token || parsed?.github_token || ''
+      ).trim();
+    } catch {
+      return null;
     }
   }
 
-  const userData = userTokens.get(req.sessionID);
+  return token || null;
+}
+
+function looksLikeGitHubToken(token) {
+  return /^(gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}|[a-f0-9]{40})$/.test(token);
+}
+
+function ensureGitHubSession(req, res) {
+  const existingSessionToken = getUserToken(req.sessionID)?.access_token;
+  const authHeader = req.headers.authorization || '';
+  if (authHeader.startsWith('Bearer ')) {
+    const rawToken = authHeader.slice('Bearer '.length).trim();
+    const token = normalizeBearerToken(rawToken);
+
+    if (token && looksLikeGitHubToken(token)) {
+      if (token !== existingSessionToken) {
+        setUserToken(req.sessionID, token);
+      }
+      req.session.githubConnected = true;
+      return true;
+    }
+
+    if (!existingSessionToken) {
+      req.session.githubConnected = false;
+      res.status(401).json({ error: 'Invalid GitHub token. Reconnect GitHub.' });
+      return false;
+    }
+  }
+
+  const userData = getUserToken(req.sessionID);
   if (!userData?.access_token) {
     req.session.githubConnected = false;
     res.status(401).json({ error: 'Session expired, reconnect GitHub' });
@@ -129,7 +178,7 @@ router.get('/callback', async (req, res) => {
       if (saveErr) {
         console.error('Session save error:', saveErr);
       }
-      const redirectUrl = `${frontendBase}/repo-review.html?token=${encodeURIComponent(tokenResult.access_token)}`;
+      const redirectUrl = `${frontendBase}/repo-review.html?connected=1`;
       res.redirect(redirectUrl);
     });
   } catch (err) {
@@ -147,7 +196,7 @@ router.get('/user', async (req, res) => {
     res.json(user);
   } catch (err) {
     console.error('User error:', err);
-    res.status(500).json({ error: err.message });
+    res.status(err.status === 401 ? 401 : 500).json({ error: err.message });
   }
 });
 
@@ -160,7 +209,7 @@ router.get('/repos', async (req, res) => {
     res.json({ repos });
   } catch (err) {
     console.error('Repos error:', err);
-    res.status(500).json({ error: err.message });
+    res.status(err.status === 401 ? 401 : 500).json({ error: err.message });
   }
 });
 
@@ -247,7 +296,7 @@ router.get('/prs', async (req, res) => {
 
 // GET /api/github/status
 router.get('/status', (req, res) => {
-  const hasToken = !!userTokens.get(req.sessionID);
+  const hasToken = !!getUserToken(req.sessionID);
   if (!hasToken && req.session.githubConnected) {
     req.session.githubConnected = false;
   }
